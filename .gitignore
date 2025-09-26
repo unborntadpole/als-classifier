@@ -1,0 +1,4 @@
+archive/
+processed_dataset/
+.venv/
+__pycache__/

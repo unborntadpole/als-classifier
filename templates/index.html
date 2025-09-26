@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALS Audio Classifier</title>
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 500px;
+    margin: 50px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0px 10px 25px rgba(0,0,0,0.2);
+}
+h1 {
+    text-align: center;
+    color: #333;
+}
+input[type="file"] {
+    display: block;
+    margin: 15px 0;
+}
+button {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+button:hover {
+    background: #357ab8;
+}
+#result {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #e7f3ff;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>ALS Audio Classifier</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label>Upload a WAV file:</label>
+        <input type="file" id="audioFile" name="file" accept=".wav" required>
+        <button type="submit">Predict</button>
+    </form>
+    <div id="result" style="display:none;"></div>
+</div>
+
+<script>
+const form = document.getElementById("uploadForm");
+const resultDiv = document.getElementById("result");
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    resultDiv.style.display = "none";
+
+    const fileInput = document.getElementById("audioFile");
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    try {
+        const response = await fetch("/predict", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+        resultDiv.style.display = "block";
+
+        if (response.ok) {
+            resultDiv.innerHTML = `
+                <strong>Prediction:</strong> ${data.prediction}<br>
+                <strong>Probabilities:</strong><br>
+                Control: ${data.probability.Control}%<br>
+                ALS: ${data.probability.ALS}%
+            `;
+        } else {
+            resultDiv.textContent = `Error: ${data.detail}`;
+            resultDiv.style.backgroundColor = "#ffd6d6";
+        }
+    } catch (err) {
+        resultDiv.style.display = "block";
+        resultDiv.textContent = "Error connecting to server.";
+        resultDiv.style.backgroundColor = "#ffd6d6";
+    }
+});
+</script>
+</body>
+</html>
